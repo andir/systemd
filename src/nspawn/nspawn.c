@@ -4879,6 +4879,7 @@ static int run(int argc, char *argv[]) {
                                 goto finish;
                         }
                 } else {
+#if 0
                         const char *p, *q;
 
                         if (arg_pivot_root_new)
@@ -4893,6 +4894,7 @@ static int run(int argc, char *argv[]) {
                                 r = -EINVAL;
                                 goto finish;
                         }
+#endif
                 }
 
         } else {
