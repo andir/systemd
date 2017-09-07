@@ -1,4 +1,6 @@
 sources = files('''
+        netdev/batadv.c
+        netdev/batadv.h
         netdev/bond.c
         netdev/bond.h
         netdev/bridge.c
