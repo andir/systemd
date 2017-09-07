@@ -83,6 +83,9 @@ static const NLTypeSystem empty_type_system = {
         .types = empty_types,
 };
 
+static const NLType rtnl_link_info_data_batman_types[] = {
+};
+
 static const NLType rtnl_link_info_data_veth_types[] = {
         [VETH_INFO_PEER]  = { .type = NETLINK_TYPE_NESTED, .type_system = &rtnl_link_type_system, .size = sizeof(struct ifinfomsg) },
 };
@@ -302,6 +305,7 @@ static const NLType rtnl_link_info_data_geneve_types[] = {
 
 /* these strings must match the .kind entries in the kernel */
 static const char* const nl_union_link_info_data_table[] = {
+        [NL_UNION_LINK_INFO_DATA_BATMAN] = "batman",
         [NL_UNION_LINK_INFO_DATA_BOND] = "bond",
         [NL_UNION_LINK_INFO_DATA_BRIDGE] = "bridge",
         [NL_UNION_LINK_INFO_DATA_VLAN] = "vlan",
@@ -328,6 +332,8 @@ static const char* const nl_union_link_info_data_table[] = {
 DEFINE_STRING_TABLE_LOOKUP(nl_union_link_info_data, NLUnionLinkInfoData);
 
 static const NLTypeSystem rtnl_link_info_data_type_systems[] = {
+        [NL_UNION_LINK_INFO_DATA_BATMAN] =           { .count = ELEMENTSOF(rtnl_link_info_data_batman_types),
+                                                       .types = rtnl_link_info_data_batman_types },
         [NL_UNION_LINK_INFO_DATA_BOND] =             { .count = ELEMENTSOF(rtnl_link_info_data_bond_types),
                                                        .types = rtnl_link_info_data_bond_types },
         [NL_UNION_LINK_INFO_DATA_BRIDGE] =           { .count = ELEMENTSOF(rtnl_link_info_data_bridge_types),

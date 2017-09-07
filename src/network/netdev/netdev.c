@@ -34,6 +34,7 @@
 #include "string-table.h"
 #include "string-util.h"
 
+#include "netdev/batman.h"
 #include "netdev/bridge.h"
 #include "netdev/bond.h"
 #include "netdev/geneve.h"
@@ -72,6 +73,7 @@ const NetDevVTable * const netdev_vtable[_NETDEV_KIND_MAX] = {
         [NETDEV_KIND_VRF] = &vrf_vtable,
         [NETDEV_KIND_VCAN] = &vcan_vtable,
         [NETDEV_KIND_GENEVE] = &geneve_vtable,
+        [NETDEV_KIND_BATMAN] = &batman_vtable,
 };
 
 static const char* const netdev_kind_table[_NETDEV_KIND_MAX] = {
@@ -98,6 +100,7 @@ static const char* const netdev_kind_table[_NETDEV_KIND_MAX] = {
         [NETDEV_KIND_VRF] = "vrf",
         [NETDEV_KIND_VCAN] = "vcan",
         [NETDEV_KIND_GENEVE] = "geneve",
+        [NETDEV_KIND_BATMAN] = "batman",
 };
 
 DEFINE_STRING_TABLE_LOOKUP(netdev_kind, NetDevKind);
@@ -218,7 +221,7 @@ static int netdev_enslave_ready(NetDev *netdev, Link* link, sd_netlink_message_h
         assert(netdev->state == NETDEV_STATE_READY);
         assert(netdev->manager);
         assert(netdev->manager->rtnl);
-        assert(IN_SET(netdev->kind, NETDEV_KIND_BRIDGE, NETDEV_KIND_BOND, NETDEV_KIND_VRF));
+        assert(IN_SET(netdev->kind, NETDEV_KIND_BRIDGE, NETDEV_KIND_BOND, NETDEV_KIND_VRF, NETDEV_KIND_BATMAN));
         assert(link);
         assert(callback);
 
@@ -308,7 +311,7 @@ int netdev_enslave(NetDev *netdev, Link *link, sd_netlink_message_handler_t call
         assert(netdev);
         assert(netdev->manager);
         assert(netdev->manager->rtnl);
-        assert(IN_SET(netdev->kind, NETDEV_KIND_BRIDGE, NETDEV_KIND_BOND, NETDEV_KIND_VRF));
+        assert(IN_SET(netdev->kind, NETDEV_KIND_BRIDGE, NETDEV_KIND_BOND, NETDEV_KIND_VRF, NETDEV_KIND_BATMAN));
 
         if (netdev->state == NETDEV_STATE_READY) {
                 r = netdev_enslave_ready(netdev, link, callback);
