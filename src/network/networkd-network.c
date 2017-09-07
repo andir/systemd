@@ -552,6 +552,10 @@ int config_parse_netdev(const char *unit,
                 network->vrf = netdev;
 
                 break;
+        case NETDEV_KIND_BATMAN:
+                network->batman = netdev;
+
+                break;
         case NETDEV_KIND_VLAN:
         case NETDEV_KIND_MACVLAN:
         case NETDEV_KIND_MACVTAP:
