@@ -68,6 +68,7 @@ int type_system_union_get_type_system(const NLTypeSystemUnion *type_system_union
 int type_system_union_protocol_get_type_system(const NLTypeSystemUnion *type_system_union, const NLTypeSystem **ret, uint16_t protocol);
 
 typedef enum NLUnionLinkInfoData {
+        NL_UNION_LINK_INFO_DATA_BATMAN,
         NL_UNION_LINK_INFO_DATA_BOND,
         NL_UNION_LINK_INFO_DATA_BRIDGE,
         NL_UNION_LINK_INFO_DATA_VLAN,

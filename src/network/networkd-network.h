@@ -118,6 +118,7 @@ struct Network {
         NetDev *bridge;
         NetDev *bond;
         NetDev *vrf;
+        NetDev *batman;
         Hashmap *stacked_netdevs;
 
         /* DHCP Client Support */
