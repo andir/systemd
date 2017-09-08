@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include "conf-parser.h"
 #include "network-internal.h"
+#include "netdev/batman.h"
 #include "netdev/bond.h"
 #include "netdev/bridge.h"
 #include "netdev/geneve.h"
@@ -136,3 +137,4 @@ Bridge.VLANFiltering,        config_parse_tristate,                0,           
 Bridge.STP,                  config_parse_tristate,                0,                             offsetof(Bridge, stp)
 VRF.TableId,                 config_parse_uint32,                  0,                             offsetof(Vrf, table) /* deprecated */
 VRF.Table,                   config_parse_route_table,             0,                             offsetof(Vrf, table)
+Batman.GatewayMode,          config_parse_batman_gateway_mode,     0,                             offsetof(Batman, gateway_mode)
