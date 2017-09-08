@@ -21,9 +21,37 @@
 
 #include "netdev/netdev.h"
 
+typedef enum BatadvGatewayMode {
+        NETDEV_BATMAN_GW_MODE_OFF,
+        NETDEV_BATMAN_GW_MODE_CLIENT,
+        NETDEV_BATMAN_GW_MODE_SERVER
+} BatadvGatewayMode;
+
+
+
 typedef struct Batadv {
         NetDev meta;
+
+        BatadvGatewayMode gateway_mode;
+/* FIXME: add the remaining fields and stuff...
+        bool dat;
+        bool mm_mode;
+*/
 } Batadv;
 
 DEFINE_NETDEV_CAST(BATMAN, Batadv);
 extern const NetDevVTable batadv_vtable;
+
+
+const char* netdev_batadv_gateway_mode_to_string(BatadvGatewayMode mode);
+
+int config_parse_batadv_gateway_mode(const char *unit,
+                                     const char *filename,
+                                     unsigned line,
+                                     const char *section,
+                                     unsigned section_line,
+                                     const char *lvalue,
+                                     int ltype,
+                                     const char *rvalue,
+                                     void *data,
+                                     void *userdata);
