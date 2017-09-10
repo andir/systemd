@@ -17,10 +17,13 @@
     along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
+#include <inttypes.h>
+
 #include "netdev/batman.h"
 #include "networkd-link.h"
 
 #include "fileio.h"
+#include "stdio-util.h"
 #include "string-util.h"
 
 const char* netdev_batman_gateway_mode_to_string(BatmanGatewayMode mode) {
@@ -85,6 +88,7 @@ static void batman_init(NetDev *n) {
 static int netdev_batman_post_create(NetDev *netdev, Link *link, sd_netlink_message *m) {
         Batman *b;
         const char *p = NULL;
+        char buf[DECIMAL_STR_MAX(uint32_t) * 2 + 2];
         int r;
 
         assert(netdev);
@@ -96,6 +100,15 @@ static int netdev_batman_post_create(NetDev *netdev, Link *link, sd_netlink_mess
         r = write_string_file(p, netdev_batman_gateway_mode_to_string(b->gateway_mode), WRITE_STRING_FILE_VERIFY_ON_FAILURE);
         if (r < 0)
                 log_link_warning_errno(link, r, "Cannot set gateway mode for interface: %m");
+
+
+        /* Configure speeds */
+        p = strjoina("/sys/class/net/", link->ifname, "/mesh/gw_bandwidth");
+        xsprintf(buf, "%" PRIu32 "/%" PRIu32, b->gateway_bandwidth_down, b->gateway_bandwidth_up);
+        r = write_string_file(p, buf, WRITE_STRING_FILE_VERIFY_ON_FAILURE);
+        if (r < 0)
+                log_link_warning_errno(link, r, "Canno set gateway bandwidth for interface: %m");
+
 
         return 0;
 }
