@@ -110,6 +110,13 @@ static int netdev_batman_post_create(NetDev *netdev, Link *link, sd_netlink_mess
                 log_link_warning_errno(link, r, "Canno set gateway bandwidth for interface: %m");
 
 
+        /* Configure hop_penalty */
+        p = strjoina("/sys/class/net/", link->ifname, "/mesh/hop_penalty");
+        xsprintf(buf, "%u" , b->hop_penalty);
+        r = write_string_file(p, buf, WRITE_STRING_FILE_VERIFY_ON_FAILURE);
+        if (r < 0)
+                log_link_warning_errno(link, r, "Cannot set hop_penalty for interface: %m");
+
         return 0;
 }
 
