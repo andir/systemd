@@ -137,3 +137,5 @@ Bridge.STP,                  config_parse_tristate,                0,           
 VRF.TableId,                 config_parse_uint32,                  0,                             offsetof(Vrf, table_id)
 VRF.Table,                   config_parse_route_table,             0,                             offsetof(Vrf, table)
 Batadv.GatewayMode,          config_parse_batadv_gateway_mode,     0,                             offsetof(Batadv, gateway_mode)
+Batadv.GatewayBandwidthDown, config_parse_si_size,          10000000,                             offsetof(Batadv, gateway_bandwidth_down)
+Batadv.GatewayBandwidthUp,   config_parse_si_size,          10000000,                             offsetof(Batadv, gateway_bandwidth_up)
