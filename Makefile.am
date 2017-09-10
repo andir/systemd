@@ -5892,6 +5892,8 @@ libnetworkd_core_la_SOURCES = \
 	src/libsystemd-network/network-internal.h \
 	src/network/netdev/netdev.h \
 	src/network/netdev/netdev.c \
+	src/network/netdev/batman.h \
+	src/network/netdev/batman.c \
 	src/network/netdev/vrf.h \
 	src/network/netdev/vrf.c \
 	src/network/netdev/tunnel.h \
