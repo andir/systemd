@@ -33,6 +33,9 @@ typedef struct Batman {
         NetDev meta;
 
         BatmanGatewayMode gateway_mode;
+        uint32_t gateway_bandwidth_down;
+        uint32_t gateway_bandwidth_up;
+
 /* FIXME: add the remaining fields and stuff...
         bool dat;
         bool mm_mode;
