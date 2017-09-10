@@ -139,3 +139,4 @@ VRF.Table,                   config_parse_route_table,             0,           
 Batman.GatewayMode,          config_parse_batman_gateway_mode,     0,                             offsetof(Batman, gateway_mode)
 Batman.GatewayBandwidthDown, config_parse_si_size,          10000000,                             offsetof(Batman, gateway_bandwidth_down)
 Batman.GatewayBandwidthUp,   config_parse_si_size,          10000000,                             offsetof(Batman, gateway_bandwidth_up)
+Batman.HopPenalty,           config_parse_unsigned,               30,                             offsetof(Batman, gateway_bandwidth_up)
