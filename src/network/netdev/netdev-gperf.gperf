@@ -141,3 +141,4 @@ Batadv.GatewayMode,          config_parse_batadv_gateway_mode,     0,           
 Batadv.GatewayBandwidthDown, config_parse_si_size,          10000000,                             offsetof(Batadv, gateway_bandwidth_down)
 Batadv.GatewayBandwidthUp,   config_parse_si_size,          10000000,                             offsetof(Batadv, gateway_bandwidth_up)
 Batadv.HopPenalty,           config_parse_unsigned,               30,                             offsetof(Batadv, hop_penalty)
+Batadv.OrigInterval,         config_parse_unsigned,               40,                             offsetof(Batadv, orig_interval)
