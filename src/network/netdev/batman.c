@@ -117,6 +117,15 @@ static int netdev_batman_post_create(NetDev *netdev, Link *link, sd_netlink_mess
         if (r < 0)
                 log_link_warning_errno(link, r, "Cannot set hop_penalty for interface: %m");
 
+
+        /* Configure orig interval */
+        p = strjoina("/sys/class/net", link->ifname, "/mesh/orig_interval");
+        xsprintf(buf, "%u", b->orig_interval);
+        r = write_string_file(p, buf, WRITE_STRING_FILE_VERIFY_ON_FAILURE);
+        if (r < 0)
+                log_link_warning_errno(link, r, "Cannot set orig_interval for interface: %m");
+
+
         return 0;
 }
 
