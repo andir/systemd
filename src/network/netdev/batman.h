@@ -37,6 +37,9 @@ typedef struct Batman {
         uint32_t gateway_bandwidth_up;
         unsigned hop_penalty;
         unsigned orig_interval;
+        bool bridge_loop_avoidance;
+        bool distributed_arp_table;
+        bool fragmentation;
 
 /* FIXME: add the remaining fields and stuff...
         bool dat;

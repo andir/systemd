@@ -125,6 +125,26 @@ static int netdev_batman_post_create(NetDev *netdev, Link *link, sd_netlink_mess
         if (r < 0)
                 log_link_warning_errno(link, r, "Cannot set orig_interval for interface: %m");
 
+        /* Configure bridge loop avoidance */
+        p = strjoina("/sys/class/net", link->ifname, "/mesh/bridge_loop_avoidance");
+        r = write_string_file(p, one_zero(b->bridge_loop_avoidance), WRITE_STRING_FILE_VERIFY_ON_FAILURE);
+        if (r < 0)
+                log_link_warning_errno(link, r, "Cannot set bridge_loop_avoidance for interface: %m");
+
+        /* Configure distributed arp table */
+        p = strjoina("/sys/class/net", link->ifname, "/mesh/distributed_arp_table");
+        r = write_string_file(p, one_zero(b->distributed_arp_table), WRITE_STRING_FILE_VERIFY_ON_FAILURE);
+        if (r < 0)
+                log_link_warning_errno(link, r, "Cannot set distributed_arp_table for interface: %m");
+
+        /* Configure distributed arp table */
+        p = strjoina("/sys/class/net", link->ifname, "/mesh/fragmentation");
+        r = write_string_file(p, one_zero(b->fragmentation), WRITE_STRING_FILE_VERIFY_ON_FAILURE);
+        if (r < 0)
+                log_link_warning_errno(link, r, "Cannot set fragmentation for interface: %m");
+
+
+
 
         return 0;
 }
