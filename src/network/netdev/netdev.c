@@ -100,7 +100,7 @@ static const char* const netdev_kind_table[_NETDEV_KIND_MAX] = {
         [NETDEV_KIND_VRF] = "vrf",
         [NETDEV_KIND_VCAN] = "vcan",
         [NETDEV_KIND_GENEVE] = "geneve",
-        [NETDEV_KIND_BATMAN] = "batman",
+        [NETDEV_KIND_BATMAN] = "batadv",
 };
 
 DEFINE_STRING_TABLE_LOOKUP(netdev_kind, NetDevKind);
