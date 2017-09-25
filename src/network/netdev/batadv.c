@@ -69,8 +69,8 @@ int config_parse_batadv_gateway_mode(const char *unit,
                 mode = NETDEV_BATMAN_GW_MODE_SERVER;
 
         else
-                log_syntax(unit, LOG_ERR, filename, line, -EINVAL, "Batadv gateway mode '%s' is not valid. Value should
-                                be 'off', 'client' or 'server'.", rvalue);
+                log_syntax(unit, LOG_ERR, filename, line, -EINVAL, "Batadv gateway mode '%s' is not valid. Value"
+                                " should be 'off', 'client' or 'server'.", rvalue);
 
         b->gateway_mode = mode;
 
