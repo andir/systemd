@@ -2,6 +2,7 @@
   This file is part of systemd.
 
   Copyright 2016 Daniel Mack
+  Copyright 2017 Andreas Rammhold <andreas@rammhold.de>
 
   systemd is free software; you can redistribute it and/or modify it
   under the terms of the GNU Lesser General Public License as published by
@@ -133,6 +134,30 @@ int bpf_program_cgroup_detach(int type, const char *path) {
 
         if (bpf(BPF_PROG_DETACH, &attr, sizeof(attr)) < 0)
                 return -errno;
+
+        return 0;
+}
+
+
+int bpf_program_load(BPFProgram *p, int type, const char *path, bool allow_override, const char *program_name) {
+        int r;
+
+        assert(path);
+        assert(program_name);
+
+        if (p) {
+                r = bpf_program_load_kernel(p, NULL, 0);
+                if (r < 0)
+                        return log_error_errno(r, "Kernel upload of %s BPF program failed: %m", program_name);
+
+                r = bpf_program_cgroup_attach(p, type, path, allow_override ? BPF_F_ALLOW_OVERRIDE : 0);
+                if (r < 0)
+                        return log_error_errno(r, "Attaching %s BPF program to cgroup %s failed: %m", program_name, path);
+        } else {
+                r = bpf_program_cgroup_detach(type, path);
+                if (r < 0)
+                        return log_full_errno(r == -ENONET ? LOG_DEBUG : LOG_ERR, r, "Detaching %s BPF program from cgroup failed: %m", program_name);
+        }
 
         return 0;
 }

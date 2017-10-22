@@ -2,6 +2,7 @@
   This file is part of systemd.
 
   Copyright 2016 Daniel Mack
+  Copyright 2017 Andreas Rammhold <andreas@rammhold.de>
 
   systemd is free software; you can redistribute it and/or modify it
   under the terms of the GNU Lesser General Public License as published by
@@ -563,35 +564,13 @@ int bpf_firewall_install(Unit *u) {
         if (r < 0)
                 return log_error_errno(r, "Failed to determine cgroup path: %m");
 
-        if (u->ip_bpf_egress) {
-                r = bpf_program_load_kernel(u->ip_bpf_egress, NULL, 0);
-                if (r < 0)
-                        return log_error_errno(r, "Kernel upload of egress BPF program failed: %m");
+        r = bpf_program_load(u->ip_bpf_egress, BPF_CGROUP_INET_EGRESS, path, cc->delegate, "egress");
+        if (r < 0)
+                return r;
 
-                r = bpf_program_cgroup_attach(u->ip_bpf_egress, BPF_CGROUP_INET_EGRESS, path, cc->delegate ? BPF_F_ALLOW_OVERRIDE : 0);
-                if (r < 0)
-                        return log_error_errno(r, "Attaching egress BPF program to cgroup %s failed: %m", path);
-        } else {
-                r = bpf_program_cgroup_detach(BPF_CGROUP_INET_EGRESS, path);
-                if (r < 0)
-                        return log_full_errno(r == -ENOENT ? LOG_DEBUG : LOG_ERR, r,
-                                              "Detaching egress BPF program from cgroup failed: %m");
-        }
-
-        if (u->ip_bpf_ingress) {
-                r = bpf_program_load_kernel(u->ip_bpf_ingress, NULL, 0);
-                if (r < 0)
-                        return log_error_errno(r, "Kernel upload of ingress BPF program failed: %m");
-
-                r = bpf_program_cgroup_attach(u->ip_bpf_ingress, BPF_CGROUP_INET_INGRESS, path, cc->delegate ? BPF_F_ALLOW_OVERRIDE : 0);
-                if (r < 0)
-                        return log_error_errno(r, "Attaching ingress BPF program to cgroup %s failed: %m", path);
-        } else {
-                r = bpf_program_cgroup_detach(BPF_CGROUP_INET_INGRESS, path);
-                if (r < 0)
-                        return log_full_errno(r == -ENOENT ? LOG_DEBUG : LOG_ERR, r,
-                                              "Detaching ingress BPF program from cgroup failed: %m");
-        }
+        r = bpf_program_load(u->ip_bpf_ingress, BPF_CGROUP_INET_INGRESS, path, cc->delegate, "ingress");
+        if (r < 0)
+                return r;
 
         return 0;
 }
