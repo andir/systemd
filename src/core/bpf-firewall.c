@@ -36,6 +36,7 @@
 #include "alloc-util.h"
 #include "bpf-firewall.h"
 #include "bpf-program.h"
+#include "bpf-support.h"
 #include "fd-util.h"
 #include "ip-address-access.h"
 #include "unit.h"
@@ -490,7 +491,7 @@ int bpf_firewall_compile(Unit *u) {
 
         assert(u);
 
-        r = bpf_firewall_supported();
+        r = bpf_map_supported();
         if (r < 0)
                 return r;
         if (r == 0) {
@@ -552,7 +553,7 @@ int bpf_firewall_install(Unit *u) {
         if (!cc)
                 return -EINVAL;
 
-        r = bpf_firewall_supported();
+        r = bpf_map_supported();
         if (r < 0)
                 return r;
         if (r == 0) {
@@ -618,42 +619,6 @@ int bpf_firewall_reset_accounting(int map_fd) {
         return bpf_map_update_element(map_fd, &key, &value);
 }
 
-
-int bpf_firewall_supported(void) {
-        static int supported = -1;
-        int fd, r;
-
-        /* Checks whether BPF firewalling is supported. For this, we check three things:
-         *
-         * a) whether we are privileged
-         * b) whether the unified hierarchy is being used
-         * c) the BPF implementation in the kernel supports BPF LPM TRIE maps, which we require
-         *
-         */
-
-        if (supported >= 0)
-                return supported;
-
-        if (geteuid() != 0)
-                return supported = false;
-
-        r = cg_unified_controller(SYSTEMD_CGROUP_CONTROLLER);
-        if (r < 0)
-                return log_error_errno(r, "Can't determine whether the unified hierarchy is used: %m");
-        if (r == 0)
-                return supported = false;
-
-        fd = bpf_map_new(BPF_MAP_TYPE_LPM_TRIE,
-                         offsetof(struct bpf_lpm_trie_key, data) + sizeof(uint64_t),
-                         sizeof(uint64_t),
-                         1,
-                         BPF_F_NO_PREALLOC);
-        if (fd < 0) {
-                log_debug_errno(r, "Can't allocate BPF LPM TRIE map, BPF firewalling is not supported: %m");
-                return supported = false;
-        }
-
-        safe_close(fd);
-
-        return supported = true;
+int bpf_firewall_supported() {
+        return bpf_map_supported();
 }

@@ -20,6 +20,8 @@ basic_sources_plain = files('''
         blkid-util.h
         bpf-program.c
         bpf-program.h
+        bpf-support.c
+        bpf-support.h
         btrfs-ctree.h
         btrfs-util.c
         btrfs-util.h
