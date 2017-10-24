@@ -30,6 +30,9 @@ int enter_cgroup_subroot(void) {
         r = cg_pid_get_path(NULL, 0, &cgroup_root);
         if (r == -ENOMEDIUM)
                 return log_warning_errno(r, "cg_pid_get_path(NULL, 0, ...) failed: %m");
+        else if (r < 0)
+                log_error_errno(r, "cg_pid_get_path(NULL, 0, ...) failed: %m");
+
         assert(r >= 0);
 
         assert_se(asprintf(&cgroup_subroot, "%s/%" PRIx64, cgroup_root, random_u64()) >= 0);
