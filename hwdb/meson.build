@@ -26,7 +26,7 @@ if conf.get('ENABLE_HWDB') == 1
                      install_dir : udevhwdbdir)
 
         meson.add_install_script('sh', '-c',
-                                 mkdir_p.format(join_paths(sysconfdir, 'udev/hwdb.d')))
+                                 mkdir_p.format(join_paths(factoryconfdir, 'udev/hwdb.d')))
 endif
 
 ############################################################
