@@ -35,6 +35,86 @@ static bool dhcp6_get_prefix_delegation(Link *link) {
                       RADV_PREFIX_DELEGATION_BOTH);
 }
 
+static int dhcp6_get_preferred_delgated_prefix(
+                /* IN */
+                Manager* manager,
+                Link *link,
+                struct in6_addr *pd_prefix,
+                uint8_t pd_prefix_len;
+
+                /* OUT */
+                struct in6_addr *addr
+) {
+
+        union in_addr_union prefix;
+        const uint8_t prefix_bits = 64 - pd_prefix_len;
+        const uint64_t n_prefixes = UNIT64_C(1) << prefix_bits;
+        int64_t subnet_id = link->network->router_prefix_subnet_id;
+        _cleanup_free_ char *assigned_buf = NULL;
+
+        int r;
+
+        // We start off with the original PD prefix we have been assigned and
+        // iterate from there
+        prefix.in6 = *pd_prefix;
+
+        // If the link has a preference for a particular subnet id try to
+        // allocate that
+        if (subnet_id == -1) {
+                if (subnet_id >= n_prefixes) {
+                        r = -1;
+                        log_link_error(link, r, "subnet id %" PRIi64 " is out of range. Only have %" PRIu64 " subnets",
+                                        subnet_id,
+                                        n_prefixes);
+                } else {
+                        r = in_addr_prefix_nth(AF_INET6, &prefix, 64, subnet_id);
+                        if (r < 0)
+                                return r;
+
+                        (void) in_addr_to_string(AF_INET6, &prefix, &assigned_buf);
+
+                        Link* assigned_link = dhcp6_prefix_get(manager, &prefix.in6);
+
+                        if (assigned_link && assigned_link != link) {
+                                r = -1;
+                                log_link_error(link, r, "The requested prefix %s is already assigned to another link: %s",
+                                                strnull(assigned_buf),
+                                                assigned_link->name,
+                                );
+                        }
+                        *addr = prefx.in6;
+                        r = 0;
+
+                        log_link_debug(link, r, "Assigned the requested prefix %s",
+                                        strnull(assigned_buf),
+                        );
+                }
+        } else {
+                for (uint64_t n  = 0; n < n_prefixes; n++) {
+                        // if we do not have an allocation preference just iterate
+                        // through the address space and return the first free prefix.
+                        Link* assigned_link = dhcp6_prefix_get(manager, &prefix.in6);
+
+                        if (!assigned_link || assigned_link == link) {
+                                *addr = prefix.in6;
+                                return 0;
+                        }
+
+                        r = in_addr_prefix_next(AF_INET6, &prefix);
+
+                        // Running out of prefixes?
+                        if (r < 0) {
+                                return r;
+                        }
+                }
+
+                r = -1;
+                log_link_debug(link, r, "Couldn't find a suitable prefix. Ran out of address space.");
+        }
+
+        return r;
+}
+
 static bool dhcp6_enable_prefix_delegation(Link *dhcp6_link) {
         Manager *manager;
         Link *l;
