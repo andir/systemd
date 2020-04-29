@@ -228,11 +228,8 @@ int in_addr_prefix_nth(int family, union in_addr_union *u, unsigned prefixlen, u
                         unsigned d = 0;
 
                         if (j <= start_byte) {
-                                fprintf(stderr, "[pre]  nth: %i, delta: %li, d: %i, overflow: %i\n", nth, delta, d, overflow);
                                 d = delta & 0xFF;
                                 delta >>= 8;
-                                fprintf(stderr, "       nth: %i, delta: %li, d: %i, overflow: %i\n", nth, delta, d, overflow);
-                                fprintf(stderr, "[calc] [%i] = %i + %i + %i == %i\n", j, u->in6.s6_addr[j], d, overflow, (unsigned char) (u->in6.s6_addr[j] + d + overflow));
                                 result.s6_addr[j] = u->in6.s6_addr[j] + d + overflow;
                                 overflow = (result.s6_addr[j] < u->in6.s6_addr[j]);
                         } else

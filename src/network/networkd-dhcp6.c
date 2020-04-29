@@ -49,7 +49,7 @@ static int dhcp6_get_preferred_delgated_prefix(
         union in_addr_union prefix;
         const uint8_t prefix_bits = 64 - pd_prefix_len;
         const uint64_t n_prefixes = UINT64_C(1) << prefix_bits;
-        int64_t subnet_id = link->network->router_prefix_subnet_id;
+        const int64_t subnet_id = link->network->router_prefix_subnet_id;
         _cleanup_free_ char *assigned_buf = NULL;
 
         int r;
@@ -273,7 +273,7 @@ static int dhcp6_pd_prefix_distribute(Link *dhcp6_link, Iterator *i,
                        n_prefixes, strnull(buf), pd_prefix_len);
 
         // FIXME: we should do this loop twice, first we should assign
-        // addresses to every link that has a preffered subnet id, then we can
+        // addresses to every link that has a prefered subnet id, then we can
         // use the remaining subnets to assign to all the other links.
         while (hashmap_iterate(manager->links, i, (void **)&link, NULL)) {
                 Link *assigned_link;
