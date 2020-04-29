@@ -226,7 +226,7 @@ int in_addr_prefix_next(int family, union in_addr_union *u, unsigned prefixlen) 
         return -EAFNOSUPPORT;
 }
 
-int in_addr_prefix_next(int family, union in_addr_union *u, unsigned prefixlenght, unsigned nth) {
+int in_addr_prefix_nth(int family, union in_addr_union *u, unsigned prefixlen, unsigned nth) {
         assert(u);
 
         if (prefixlen <= 0)

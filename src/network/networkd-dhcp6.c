@@ -40,7 +40,7 @@ static int dhcp6_get_preferred_delgated_prefix(
                 Manager* manager,
                 Link *link,
                 struct in6_addr *pd_prefix,
-                uint8_t pd_prefix_len;
+                uint8_t pd_prefix_len,
 
                 /* OUT */
                 struct in6_addr *addr
@@ -48,7 +48,7 @@ static int dhcp6_get_preferred_delgated_prefix(
 
         union in_addr_union prefix;
         const uint8_t prefix_bits = 64 - pd_prefix_len;
-        const uint64_t n_prefixes = UNIT64_C(1) << prefix_bits;
+        const uint64_t n_prefixes = UINT64_C(1) << prefix_bits;
         int64_t subnet_id = link->network->router_prefix_subnet_id;
         _cleanup_free_ char *assigned_buf = NULL;
 
@@ -63,10 +63,10 @@ static int dhcp6_get_preferred_delgated_prefix(
                 // allocate that
 
                 if (subnet_id >= n_prefixes) {
-                        r = -1;
-                        log_link_error(link, r, "subnet id %" PRIi64 " is out of range. Only have %" PRIu64 " subnets",
+                        log_link_debug(link, "subnet id %" PRIi64 " is out of range. Only have %" PRIu64 " subnets",
                                         subnet_id,
                                         n_prefixes);
+                        return -1;
                 } else {
                         r = in_addr_prefix_nth(AF_INET6, &prefix, 64, subnet_id);
                         if (r < 0)
@@ -77,18 +77,18 @@ static int dhcp6_get_preferred_delgated_prefix(
                         Link* assigned_link = dhcp6_prefix_get(manager, &prefix.in6);
 
                         if (assigned_link && assigned_link != link) {
-                                r = -1;
-                                log_link_error(link, r, "The requested prefix %s is already assigned to another link: %s",
-                                               strnull(assigned_buf),
-                                               assigned_link->name,
+                                log_link_debug(link, "The requested prefix %s is already assigned to another link: %s",
+                                               assigned_buf,
+                                               assigned_link->ifname,
                                 );
+                                return -1;
                         }
-                        *addr = prefx.in6;
-                        r = 0;
+                        *addr = prefix.in6;
 
-                        log_link_debug(link, r, "The requested prefix %s is available. Using it.",
-                                       strnull(assigned_buf),
+                        log_link_debug(link, "The requested prefix %s is available. Using it.",
+                                       assigned_buf,
                         );
+                        return 0;
                 }
         } else {
                 for (uint64_t n  = 0; n < n_prefixes; n++) {
@@ -101,19 +101,17 @@ static int dhcp6_get_preferred_delgated_prefix(
                                 return 0;
                         }
 
-                        r = in_addr_prefix_next(AF_INET6, &prefix);
-
+                        r = in_addr_prefix_next(AF_INET6, &prefix, 64);
                         // Running out of prefixes?
                         if (r < 0) {
                                 return r;
                         }
                 }
 
-                r = -1;
-                log_link_debug(link, r, "Couldn't find a suitable prefix. Ran out of address space.");
+                log_link_debug(link, "Couldn't find a suitable prefix. Ran out of address space.");
         }
 
-        return r;
+        return -1;
 }
 
 static bool dhcp6_enable_prefix_delegation(Link *dhcp6_link) {
@@ -253,6 +251,7 @@ static int dhcp6_pd_prefix_distribute(Link *dhcp6_link, Iterator *i,
                                       uint32_t lifetime_valid) {
         Link *link;
         Manager *manager = dhcp6_link->manager;
+        union in_addr_union prefix;
         uint64_t n_prefixes, n_used = 0;
         _cleanup_free_ char *buf = NULL;
         _cleanup_free_ char *assigned_buf = NULL;
