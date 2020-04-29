@@ -63,9 +63,9 @@ static int dhcp6_get_preferred_delgated_prefix(
                 // allocate that
 
                 if (subnet_id >= n_prefixes) {
-                        log_link_debug(link, "subnet id %" PRIi64 " is out of range. Only have %" PRIu64 " subnets",
-                                        subnet_id,
-                                        n_prefixes);
+                        //log_link_debug(link, "subnet id %" PRIi64 " is out of range. Only have %" PRIu64 " subnets",
+                        //                subnet_id,
+                        //                n_prefixes);
                         return -1;
                 } else {
                         r = in_addr_prefix_nth(AF_INET6, &prefix, 64, subnet_id);
@@ -77,17 +77,17 @@ static int dhcp6_get_preferred_delgated_prefix(
                         Link* assigned_link = dhcp6_prefix_get(manager, &prefix.in6);
 
                         if (assigned_link && assigned_link != link) {
-                                log_link_debug(link, "The requested prefix %s is already assigned to another link: %s",
-                                               assigned_buf,
-                                               assigned_link->ifname,
-                                );
+                                //log_link_debug(link, "The requested prefix %s is already assigned to another link: %s",
+                                //               assigned_buf,
+                                //               assigned_link->ifname,
+                                //);
                                 return -1;
                         }
                         *addr = prefix.in6;
 
-                        log_link_debug(link, "The requested prefix %s is available. Using it.",
-                                       assigned_buf,
-                        );
+                        //log_link_debug(link, "The requested prefix %s is available. Using it.",
+                        //               assigned_buf,
+                        //);
                         return 0;
                 }
         } else {
