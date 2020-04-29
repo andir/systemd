@@ -173,6 +173,7 @@ struct Network {
 
         /* IPv6 prefix delegation support */
         RADVPrefixDelegation router_prefix_delegation;
+        int32_t router_prefix_subnet_id;
         usec_t router_lifetime_usec;
         uint8_t router_preference;
         bool router_managed;
