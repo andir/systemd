@@ -177,10 +177,14 @@ static void test_in_addr_prefix_next(void) {
 static void test_in_addr_prefix_nth_one(unsigned f, const char *before, unsigned pl, unsigned nth, const char *after) {
         union in_addr_union ubefore, uafter, t;
 
+        char* s;
+
         assert_se(in_addr_from_string(f, before, &ubefore) >= 0);
 
         t = ubefore;
-        assert_se((in_addr_prefix_nth(f, &t, pl, nth) > 0) == !!after);
+        int r = in_addr_prefix_nth(f, &t, pl, nth);
+        (void) in_addr_to_string(f, &t, &s);
+        assert_se((r > 0) == !!after);
 
         if (after) {
                 assert_se(in_addr_from_string(f, after, &uafter) >= 0);
@@ -191,19 +195,20 @@ static void test_in_addr_prefix_nth_one(unsigned f, const char *before, unsigned
 static void test_in_addr_prefix_nth(void) {
         log_info("/* %s */", __func__);
 
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.1", 24, 0, "192.168.0.0");
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.1", 24, 1, "192.168.1.0");
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.1", 24, 4, "192.168.4.0");
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.1", 25, 1, "192.168.0.128");
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.255.1", 25, 1, "192.168.255.128");
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.255.1", 24, 1, NULL);
-        test_in_addr_prefix_nth_one(AF_INET, "192.168.255.255", 32, 1, NULL);
+        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.0", 24, 0, "192.168.0.0");
+        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.0", 24, 1, "192.168.1.0");
+        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.0", 24, 4, "192.168.4.0");
+        test_in_addr_prefix_nth_one(AF_INET, "192.168.0.0", 25, 1, "192.168.0.128");
+        test_in_addr_prefix_nth_one(AF_INET, "192.168.255.0", 25, 1, "192.168.255.128");
+        test_in_addr_prefix_nth_one(AF_INET, "192.168.255.0", 24, 0, "192.168.255.0");
+        test_in_addr_prefix_nth_one(AF_INET, "255.255.255.255", 32, 1, NULL);
 
         test_in_addr_prefix_nth_one(AF_INET6, "4400::", 8, 1, "4500::");
         test_in_addr_prefix_nth_one(AF_INET6, "4400::", 7, 1, "4600::");
         test_in_addr_prefix_nth_one(AF_INET6, "4400::", 64, 1, "4400:0:0:1::");
+        test_in_addr_prefix_nth_one(AF_INET6, "4400::", 64, 2, "4400:0:0:2::");
         test_in_addr_prefix_nth_one(AF_INET6, "4400::", 64, 0xbad, "4400:0:0:0bad::");
-        test_in_addr_prefix_nth_one(AF_INET6, "4400:0:0:ffff::", 64, 1, NULL);
+        test_in_addr_prefix_nth_one(AF_INET6, "4400:0:0:ffff::", 64, 1, "4400:0:1::");
         test_in_addr_prefix_nth_one(AF_INET6, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", 128, 1, NULL);
 }
 

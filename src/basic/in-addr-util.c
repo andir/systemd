@@ -243,13 +243,50 @@ int in_addr_prefix_nth(int family, union in_addr_union *u, unsigned prefixlen, u
 
                 c = be32toh(u->in.s_addr);
 
-                n = c + nth * (1UL << (32 - prefixlen));
+                n = c + (nth * (1UL << (32 - prefixlen)));
 
                 if (n < c)
                         return 0; // overflow
 
                 n &= 0xFFFFFFFFUL << (32 - prefixlen);
                 u->in.s_addr = htobe32(n);
+                return 1;
+
+        }
+
+        if (family == AF_INET6) {
+                struct in6_addr result = {};
+                uint8_t overflow = 0;
+                uint64_t delta ; // this assumes that we only ever have to up to 2<<64 subnets
+                unsigned i;
+                unsigned start_byte = (prefixlen -1) / 8;
+
+                if (prefixlen > 128)
+                        prefixlen = 128;
+
+                /* First calculate what we have to add */
+                delta = nth << ((128 - prefixlen) % 8);
+
+                for (i = 16; i > 0; i--) {
+                        unsigned j = i - 1;
+                        unsigned d = 0;
+
+                        if (j <= start_byte) {
+                                fprintf(stderr, "[pre]  nth: %i, delta: %li, d: %i, overflow: %i\n", nth, delta, d, overflow);
+                                d = delta & 0xFF;
+                                delta >>= 8;
+                                fprintf(stderr, "       nth: %i, delta: %li, d: %i, overflow: %i\n", nth, delta, d, overflow);
+                                fprintf(stderr, "[calc] [%i] = %i + %i + %i == %i\n", j, u->in6.s6_addr[j], d, overflow, (unsigned char) (u->in6.s6_addr[j] + d + overflow));
+                                result.s6_addr[j] = u->in6.s6_addr[j] + d + overflow;
+                                overflow = (result.s6_addr[j] < u->in6.s6_addr[j]);
+                        } else
+                                result.s6_addr[j] = u->in6.s6_addr[j];
+                }
+
+                if (overflow)
+                        return 0;
+
+                u->in6 = result;
                 return 1;
         }
 
