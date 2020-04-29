@@ -226,6 +226,36 @@ int in_addr_prefix_next(int family, union in_addr_union *u, unsigned prefixlen) 
         return -EAFNOSUPPORT;
 }
 
+int in_addr_prefix_next(int family, union in_addr_union *u, unsigned prefixlenght, unsigned nth) {
+        assert(u);
+
+        if (prefixlen <= 0)
+                return 0;
+
+        if (nth == 0) { // identity??
+                return 1;
+        }
+
+        if (family == AF_INET) {
+                uint32_t c, n;
+                if (prefixlen > 32)
+                        prefixlen = 32;
+
+                c = be32toh(u->in.s_addr);
+
+                n = c + nth * (1UL << (32 - prefixlen));
+
+                if (n < c)
+                        return 0; // overflow
+
+                n &= 0xFFFFFFFFUL << (32 - prefixlen);
+                u->in.s_addr = htobe32(n);
+                return 1;
+        }
+
+        return -EAFNOSUPPORT;
+}
+
 int in_addr_random_prefix(
                 int family,
                 union in_addr_union *u,

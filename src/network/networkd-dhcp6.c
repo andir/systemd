@@ -58,9 +58,10 @@ static int dhcp6_get_preferred_delgated_prefix(
         // iterate from there
         prefix.in6 = *pd_prefix;
 
-        // If the link has a preference for a particular subnet id try to
-        // allocate that
-        if (subnet_id == -1) {
+        if (subnet_id < 0) {
+                // If the link has a preference for a particular subnet id try to
+                // allocate that
+
                 if (subnet_id >= n_prefixes) {
                         r = -1;
                         log_link_error(link, r, "subnet id %" PRIi64 " is out of range. Only have %" PRIu64 " subnets",
@@ -78,15 +79,15 @@ static int dhcp6_get_preferred_delgated_prefix(
                         if (assigned_link && assigned_link != link) {
                                 r = -1;
                                 log_link_error(link, r, "The requested prefix %s is already assigned to another link: %s",
-                                                strnull(assigned_buf),
-                                                assigned_link->name,
+                                               strnull(assigned_buf),
+                                               assigned_link->name,
                                 );
                         }
                         *addr = prefx.in6;
                         r = 0;
 
-                        log_link_debug(link, r, "Assigned the requested prefix %s",
-                                        strnull(assigned_buf),
+                        log_link_debug(link, r, "The requested prefix %s is available. Using it.",
+                                       strnull(assigned_buf),
                         );
                 }
         } else {
@@ -252,7 +253,6 @@ static int dhcp6_pd_prefix_distribute(Link *dhcp6_link, Iterator *i,
                                       uint32_t lifetime_valid) {
         Link *link;
         Manager *manager = dhcp6_link->manager;
-        union in_addr_union prefix;
         uint64_t n_prefixes, n_used = 0;
         _cleanup_free_ char *buf = NULL;
         _cleanup_free_ char *assigned_buf = NULL;
@@ -273,15 +273,12 @@ static int dhcp6_pd_prefix_distribute(Link *dhcp6_link, Iterator *i,
         log_link_debug(dhcp6_link, "Assigning up to %" PRIu64 " prefixes from %s/%u",
                        n_prefixes, strnull(buf), pd_prefix_len);
 
+        // FIXME: we should do this loop twice, first we should assign
+        // addresses to every link that has a preffered subnet id, then we can
+        // use the remaining subnets to assign to all the other links.
         while (hashmap_iterate(manager->links, i, (void **)&link, NULL)) {
                 Link *assigned_link;
-
-                if (n_used == n_prefixes) {
-                        log_link_debug(dhcp6_link, "Assigned %" PRIu64 "/%" PRIu64 " prefixes from %s/%u",
-                                       n_used, n_prefixes, strnull(buf), pd_prefix_len);
-
-                        return -EAGAIN;
-                }
+                struct in6_addr assgined_prefix;
 
                 if (link == dhcp6_link)
                         continue;
@@ -289,33 +286,29 @@ static int dhcp6_pd_prefix_distribute(Link *dhcp6_link, Iterator *i,
                 if (!dhcp6_get_prefix_delegation(link))
                         continue;
 
-                assigned_link = dhcp6_prefix_get(manager, &prefix.in6);
-                if (assigned_link && assigned_link != link)
-                        continue;
+                r = dhcp6_get_preferred_delgated_prefix(manager, link, &prefix.in6, pd_prefix_len,
+                                                        &assgined_prefix);
+                // FIXME: When a link doesn't acquire an addres that doesn't
+                //        mean none of the other links can or should get one.
+                // Example: A link has a preferred subnet_id but that is
+                //          already taken by another link. Now all the remaining links
+                //          will also not obtain a prefix.
+                if (r = -EAGAIN) // FIXME: is -EAGAIN the right error code here?
+                        continue; // failed to assign for just this interface, try the next one
+                else if (r < 0)
+                        return r;
 
                 (void) in_addr_to_string(AF_INET6, &prefix, &assigned_buf);
                 r = dhcp6_pd_prefix_assign(link, &prefix.in6, 64,
                                            lifetime_preferred, lifetime_valid);
                 if (r < 0) {
-                        log_link_error_errno(link, r, "Unable to %s prefix %s/64 from %s/%u for link: %m",
-                                             assigned_link ? "update": "assign",
+                        log_link_error_errno(link, r, "Unable to assign/update prefix %s/64 from %s/%u for link: %m",
                                              strnull(assigned_buf),
                                              strnull(buf), pd_prefix_len);
-
-                        if (!assigned_link)
-                                continue;
-
                 } else
-                        log_link_debug(link, "Assigned prefix %" PRIu64 "/%" PRIu64 " %s/64 from %s/%u to link",
-                                       n_used + 1, n_prefixes,
+                        log_link_debug(link, "Assigned prefix %s/64 from %s/%u to link",
                                        strnull(assigned_buf),
                                        strnull(buf), pd_prefix_len);
-
-                n_used++;
-
-                r = in_addr_prefix_next(AF_INET6, &prefix, 64);
-                if (r < 0 && n_used < n_prefixes)
-                        return r;
         }
 
         return 0;
